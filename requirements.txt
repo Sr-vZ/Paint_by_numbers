@@ -1,0 +1,5 @@
+imutils
+opencv-python
+scikit-image
+img2pdf
+pillow
