@@ -18,9 +18,15 @@ $(function () {
     })
 
     $('#customRange2Value').html($('#customRange2').val())
+    $('#customRange3Value').html($('#customRange3').val())
+
     $('#customRange2').on('change',function () {
         console.log(this.value)
         $('#customRange2Value').html(this.value)
+    })
+    $('#customRange3').on('change',function () {
+        console.log(this.value)
+        $('#customRange3Value').html(this.value)
     })
     $("#submitBtn").click(function () {
         $.ajax({

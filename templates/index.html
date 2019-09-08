@@ -23,8 +23,8 @@
     <!-- Image and text -->
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#">
-            <img src="{{ url_for('static', filename = 'P.png') }}" width="30" height="30"
-                class="d-inline-block align-top" alt=""> <strong> aint by Numbers</strong>
+            <img src="{{ url_for('static', filename = 'P.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+            <strong> aint by Numbers</strong>
         </a>
     </nav>
 
@@ -48,29 +48,36 @@
                                 <input name="file" type="file" class="custom-file-input" id="customFile" onchange='$("#upload-file-info").html($(this).val().split("\\").pop(), function () {
             console.log($(this).val())
         })'>
-                                <label class="custom-file-label" for="customFile" id="upload-file-info">Choose
-                                    file</label>
+                                <label class="custom-file-label" for="customFile" id="upload-file-info">Choose file
+                                </label>
                             </div>
 
                         </div>
 
                         <div id="afterImage">
                             <div class="row">
-                                <div class="col">
+                                <div class="col" style="padding:20px">
                                     <!-- <img id="imgThumb" src="" class="rounded float-left" alt="..."> -->
                                     <figure class="figure" id="figureHolder">
-                                        <img id="imgThumb" class="figure-img img-fluid rounded"
-                                            alt="A generic square placeholder image with rounded corners in a figure.">
+                                        <img id="imgThumb" class="figure-img img-fluid rounded" alt="A generic square placeholder image with rounded corners in a figure.">
                                         <figcaption class="figure-caption text-right">Preview image</figcaption>
                                     </figure>
                                 </div>
-                                <div class="col">
-                                    <div>
-                                        <label for="customRange2">Color Selector</label>
-                                        <input type="range" class="custom-range" min="1" max="24" id="customRange2" defaultValue="8">
-                                        <span id="customRange2Value" align="center" ></span>
+                                <div class="col" style="padding:20px">
+                                    <div class="row">
+                                        <div class="col" style="padding:20px">
+                                            <label for="customRange2">Color Selector : <span id="customRange2Value" align="center"></span></label>
+                                            <input type="range" class="custom-range" min="1" max="24" id="customRange2" defaultValue="8" name="color_slider">
+                                            
+                                        </div>
                                     </div>
-                                    <button id="submitBtn" class="btn btn-primary">Upload</button>
+                                    <div class="row">
+                                            <div class="col" style="padding:20px">
+                                                <label for="customRange3">Detail Level : <span id="customRange3Value" align="center"></span></label>
+                                                <input type="range" class="custom-range" min="1" max="8" id="customRange3" defaultValue="8" name="detail_slider">                                                
+                                            </div>
+                                        </div>
+                                    <button type="submit" id="submitBtn" class="btn btn-primary">Upload</button>
                                 </div>
                             </div>
                         </div>

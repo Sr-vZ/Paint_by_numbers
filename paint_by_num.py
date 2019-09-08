@@ -1,7 +1,7 @@
 import cv2
 import argparse
 import numpy as np
-import imutils
+# import imutils
 
 
 def auto_canny(image, sigma=0.33):
@@ -18,17 +18,19 @@ def auto_canny(image, sigma=0.33):
 
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,help="path to the input image")
-ap.add_argument("-c", "--colors", required=True, help="Number of colors")
-ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
-args = vars(ap.parse_args())
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-i", "--image", required=True,help="path to the input image")
+# ap.add_argument("-c", "--colors", required=True, help="Number of colors")
+# ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
+# args = vars(ap.parse_args())
 
+
+output_path ='./static/processed_image/'
 
 def processImage(srcImage,numColor,detailLevel):
     print("Image : {0} No of Colors: {1} Detail Level: {2}".format(srcImage,numColor,detailLevel))
     image = cv2.imread(srcImage)
-    blurRadii = [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9), (11, 11), (13, 13)]
+    blurRadii = [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9), (11, 11), (13, 13),(15,15)]
     kernel = np.ones(blurRadii[int(detailLevel)], np.uint8)
     image = cv2.blur(image, blurRadii[int(detailLevel)])
     NCLUSTERS = int(numColor)
@@ -45,7 +47,8 @@ def processImage(srcImage,numColor,detailLevel):
     centers = np.uint8(centers)
     res = centers[labels.flatten()]
     image2 = res.reshape((image.shape))
-    cv2.imwrite("Output_col_"+numColor+"_det_"+detailLevel+".jpg", image2)
+    colored_output = output_path + "Output_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
+    cv2.imwrite(colored_output, image2)
     numLabels = np.arange(0, NCLUSTERS + 1)
     (hist, _) = np.histogram(labels, bins=numLabels)
     # normalize the histogram, such that it sums to one
@@ -87,7 +90,8 @@ def processImage(srcImage,numColor,detailLevel):
 
 
     # cv2.imshow("Color Pallet", imutils.resize(chart, height=50))
-    cv2.imwrite("Color Palette.jpg", chart)
+    color_palette = output_path + "Color Palette.jpg"
+    cv2.imwrite(color_palette, chart)
 
     #find the edges in the image
     edged = cv2.Canny(image2, 30, 50)
@@ -104,8 +108,8 @@ def processImage(srcImage,numColor,detailLevel):
     img = cv2.drawContours(contourImg, contours, -1, (0, 0, 0), 1)
     # cv2.imshow("Contours", imutils.resize(img, height=600))
     # cv2.waitKey(0)
-
-    cv2.imwrite("Outline_col_"+numColor+"_det_"+detailLevel+"_unnumbered.jpg", img)
+    outline_image = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+"_unnumbered.jpg"
+    cv2.imwrite(outline_image, img)
     i = 0
     for c in contours:
         if(cv2.contourArea(c)>10):
@@ -113,14 +117,18 @@ def processImage(srcImage,numColor,detailLevel):
             x, y, w, h = cv2.boundingRect(c)
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
-            cv2.putText(img, str(i), (x+int(w/2), y+int(h/2)),
+
+            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),
                         font, .5, (0, 0, 255), 1, cv2.LINE_AA)
-            print(image2[y+int(h/2), x+int(w/2)] in colors)
+            print(np.where(colors == image2[y+int(h/2), x+int(w/2)]))
     # print(contours[1], cv2.contourArea(contours[1]))
-    cv2.imwrite("Outline_col_"+numColor+"_det_"+detailLevel+".jpg", img)
+     
+    outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
+    cv2.imwrite(outline_image_with_no, img)
     # cv2.imshow("Contour Text", imutils.resize(img, height=600))
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
+    return colored_output, color_palette, outline_image_with_no
 
 
-processImage(args["image"], args["colors"], args["detail"])
+# processImage(args["image"], args["colors"], args["detail"])
