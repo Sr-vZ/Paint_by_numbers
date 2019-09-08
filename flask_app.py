@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
 from werkzeug import secure_filename
 import os, json
+import os.path
+from os import path
 import paint_by_num
 
 UPLOAD_FOLDER = './static/upload'
@@ -49,8 +51,9 @@ def success():
         # os.remove(file) for file in os.listdir('./static/processed_image') if file.endswith('.jpg')
         for filename in os.listdir('./static/processed_image'):
             if filename.endswith('.jpg'):
-                os.unlink(filename)
-                print(filename)
+                if path.isfile('./static/processed_image/' + filename):
+                    os.remove('./static/processed_image/' + filename)
+                    print(filename)
         print(request.form)
         f = request.files['file']
         f.save(os.path.join(app.config['UPLOAD_FOLDER'],f.filename))

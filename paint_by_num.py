@@ -112,15 +112,20 @@ def processImage(srcImage,numColor,detailLevel):
     cv2.imwrite(outline_image, img)
     i = 0
     for c in contours:
-        if(cv2.contourArea(c)>10):
-
+        if(cv2.contourArea(c)>2):            
             x, y, w, h = cv2.boundingRect(c)
+            # compute the center of the contour
+            M = cv2.moments(c)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
 
-            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),
-                        font, .5, (0, 0, 255), 1, cv2.LINE_AA)
-            print(np.where(colors == image2[y+int(h/2), x+int(w/2)]))
+            # cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+    
+    print('Total Area Outlined: ',i)
+            # print(np.where(colors == image2[y+int(h/2), x+int(w/2)]))
     # print(contours[1], cv2.contourArea(contours[1]))
      
     outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
