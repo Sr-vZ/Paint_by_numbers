@@ -11,8 +11,8 @@ Setup:
 
 1) Once Python is installed unzip the folder.
 2) Open Terminal/ Command prompt/ Power Shell/ Shell inside the folder or navigate to this folder
-3) Run the following commnand : "pip install -r requirements.txt" (without the quotes)
-4) Once all the dependencies are insatalled run the following command : "python flask_app.py
+3) Run the following commnand : "pip3 install -r requirements.txt" (without the quotes)
+4) Once all the dependencies are insatalled run the following command : "python flask_app.py"
 5) Open your preferred browser (Chrome/Firefox) and go to : http://127.0.0.1:5000/
 
 How to use the application:

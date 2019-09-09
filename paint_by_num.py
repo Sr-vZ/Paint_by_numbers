@@ -1,6 +1,7 @@
 import cv2
 import argparse
 import numpy as np
+import img2pdf
 # import imutils
 
 
@@ -17,12 +18,7 @@ def auto_canny(image, sigma=0.33):
 	return edged
 
 
-# construct the argument parse and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True,help="path to the input image")
-# ap.add_argument("-c", "--colors", required=True, help="Number of colors")
-# ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
-# args = vars(ap.parse_args())
+
 
 
 output_path ='./static/processed_image/'
@@ -96,7 +92,7 @@ def processImage(srcImage,numColor,detailLevel):
     #find the edges in the image
     edged = cv2.Canny(image2, 30, 50)
 
-    contours,hierarchy = cv2.findContours(edged,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)[-2:]
+    contours,hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
     # cv2.imshow("Edges", imutils.resize(edged, height=600))
 
 
@@ -112,7 +108,7 @@ def processImage(srcImage,numColor,detailLevel):
     cv2.imwrite(outline_image, img)
     i = 0
     for c in contours:
-        if(cv2.contourArea(c)>2):            
+        if(cv2.contourArea(c)>0):            
             x, y, w, h = cv2.boundingRect(c)
             # compute the center of the contour
             M = cv2.moments(c)
@@ -121,8 +117,9 @@ def processImage(srcImage,numColor,detailLevel):
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
 
-            # cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
-            cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+            # cv2.putText(img, str(i)+' '+str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+        print('Contour: '+str(i)+' Area: '+str(cv2.contourArea(c)))
     
     print('Total Area Outlined: ',i)
             # print(np.where(colors == image2[y+int(h/2), x+int(w/2)]))
@@ -133,7 +130,18 @@ def processImage(srcImage,numColor,detailLevel):
     # cv2.imshow("Contour Text", imutils.resize(img, height=600))
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    return colored_output, color_palette, outline_image_with_no
+    output_pdf = output_path+' Output.pdf'
+    with open(output_pdf, 'wb') as f:
+        f.write(img2pdf.convert([srcImage, colored_output, outline_image, outline_image_with_no, color_palette]))
+    f.close()
 
+    return colored_output, color_palette, outline_image_with_no, output_pdf
 
-# processImage(args["image"], args["colors"], args["detail"])
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--image", required=True,help="path to the input image")
+ap.add_argument("-c", "--colors", required=True, help="Number of colors")
+ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
+args = vars(ap.parse_args())
+processImage(args["image"], args["colors"], args["detail"])
+

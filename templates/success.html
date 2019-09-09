@@ -81,6 +81,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col mx-auto" style="padding:20px">
+                            <div class="text-center">
+                                <img src="{{ url_for('static', filename = 'PDF_icon.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+                                <strong>Downloadable PDF</strong>
+                                <div class="text-center">
+                                    <a class="btn btn-primary" href="{{url_for('static',filename = 'processed_image/'+o_pdf)}}" target="_blank">Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

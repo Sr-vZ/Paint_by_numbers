@@ -63,8 +63,8 @@ def success():
         detail_level = request.form['detail_slider']
         # return json.dumps({'filename': str(full_filename), 'colors':int(colors), 'detail':int(detail_level)})
         print(str(full_filename) +' '+ str(int(colors)) + str(int(detail_level)-1))
-        colored_output, color_palette, outline_image_with_no = paint_by_num.processImage(str(full_filename),int(colors),int(detail_level)-1)
-        return render_template('success.html',o_img = os.path.basename(full_filename),c_img = os.path.basename(colored_output),ot_img = os.path.basename(outline_image_with_no),cp = os.path.basename(color_palette))
+        colored_output, color_palette, outline_image_with_no,output_pdf = paint_by_num.processImage(str(full_filename),int(colors),int(detail_level)-1)
+        return render_template('success.html', o_img=os.path.basename(full_filename), c_img=os.path.basename(colored_output), ot_img=os.path.basename(outline_image_with_no), cp=os.path.basename(color_palette), o_pdf=os.path.basename(output_pdf))
 
 
 @app.route('/get_data', methods= ['GET'])
