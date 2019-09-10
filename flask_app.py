@@ -50,7 +50,7 @@ def success():
     if request.method == 'POST':
         # os.remove(file) for file in os.listdir('./static/processed_image') if file.endswith('.jpg')
         for filename in os.listdir('./static/processed_image'):
-            if filename.endswith('.jpg'):
+            if filename.endswith('.jpg') or filename.endswith('.pdf'):
                 if path.isfile('./static/processed_image/' + filename):
                     os.remove('./static/processed_image/' + filename)
                     print(filename)

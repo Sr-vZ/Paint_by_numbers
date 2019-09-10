@@ -138,10 +138,10 @@ def processImage(srcImage,numColor,detailLevel):
     return colored_output, color_palette, outline_image_with_no, output_pdf
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,help="path to the input image")
-ap.add_argument("-c", "--colors", required=True, help="Number of colors")
-ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
-args = vars(ap.parse_args())
-processImage(args["image"], args["colors"], args["detail"])
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-i", "--image", required=True,help="path to the input image")
+# ap.add_argument("-c", "--colors", required=True, help="Number of colors")
+# ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
+# args = vars(ap.parse_args())
+# processImage(args["image"], args["colors"], args["detail"])
 
