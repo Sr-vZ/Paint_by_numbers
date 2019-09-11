@@ -21,6 +21,8 @@ How to use the application:
 3) Select detail level of the image higher detail = larger color area
 4) Upload the file and wait for the resulting images
 
+python3 -m pip install -r requirements.txt
+
 Please let me know in case any issue.
 Sourav
 
