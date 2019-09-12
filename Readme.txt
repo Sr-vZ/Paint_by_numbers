@@ -21,6 +21,9 @@ How to use the application:
 3) Select detail level of the image higher detail = larger color area
 4) Upload the file and wait for the resulting images
 
+cd Downloads
+cd Paint_by_numbers
+python3 flask_app.py
 python3 -m pip install -r requirements.txt
 
 Please let me know in case any issue.
@@ -29,3 +32,6 @@ Sourav
 
 
 
+https://codegolf.stackexchange.com/questions/42217/paint-by-numbers
+https://justpaintbynumber.com/pages/paint-by-number
+https://codegolf.stackexchange.com/questions/68845/paint-by-numbers-using-programming-not-numbers

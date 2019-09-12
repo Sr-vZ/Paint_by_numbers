@@ -107,8 +107,10 @@ def processImage(srcImage,numColor,detailLevel):
     outline_image = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+"_unnumbered.jpg"
     cv2.imwrite(outline_image, img)
     i = 0
+    maxContour = max(contours, key=cv2.contourArea)
+    minContour = min(contours, key=cv2.contourArea)
     for c in contours:
-        if(cv2.contourArea(c)>0):            
+        if(cv2.contourArea(c)>100):            
             x, y, w, h = cv2.boundingRect(c)
             # compute the center of the contour
             M = cv2.moments(c)
@@ -116,10 +118,11 @@ def processImage(srcImage,numColor,detailLevel):
             cY = int(M["m01"] / M["m00"])
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
-
-            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[0][0]+1), (x+int(w/2), y+int(h/2)),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+            fontSize = cv2.contourArea(c)/cv2.contourArea(maxContour)
+            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[
+                        0][0]+1), (x+int(w/2), y+int(h/2)), font, fontSize, (0, 0, 255), 1, cv2.LINE_AA)
             # cv2.putText(img, str(i)+' '+str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
-        print('Contour: '+str(i)+' Area: '+str(cv2.contourArea(c)))
+            print('Contour: '+str(i)+' Area: '+str(cv2.contourArea(c))+' ratio: '+str(cv2.contourArea(c)/cv2.contourArea(maxContour)))
     
     print('Total Area Outlined: ',i)
             # print(np.where(colors == image2[y+int(h/2), x+int(w/2)]))
@@ -138,10 +141,10 @@ def processImage(srcImage,numColor,detailLevel):
     return colored_output, color_palette, outline_image_with_no, output_pdf
 
 # construct the argument parse and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True,help="path to the input image")
-# ap.add_argument("-c", "--colors", required=True, help="Number of colors")
-# ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
-# args = vars(ap.parse_args())
-# processImage(args["image"], args["colors"], args["detail"])
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--image", required=True,help="path to the input image")
+ap.add_argument("-c", "--colors", required=True, help="Number of colors")
+ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
+args = vars(ap.parse_args())
+processImage(args["image"], args["colors"], args["detail"])
 
