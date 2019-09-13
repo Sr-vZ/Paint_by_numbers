@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import img2pdf
 # import imutils
-
+from PIL import Image, ImageDraw, ImageFont
 
 def auto_canny(image, sigma=0.33):
 	# compute the median of the single channel pixel intensities
@@ -28,7 +28,8 @@ def processImage(srcImage,numColor,detailLevel):
     image = cv2.imread(srcImage)
     blurRadii = [(1, 1), (3, 3), (5, 5), (7, 7), (9, 9), (11, 11), (13, 13),(15,15)]
     kernel = np.ones(blurRadii[int(detailLevel)], np.uint8)
-    image = cv2.blur(image, blurRadii[int(detailLevel)])
+    # image = cv2.blur(image, blurRadii[int(detailLevel)])
+    image = cv2.GaussianBlur(image, blurRadii[int(detailLevel)], 0)
     NCLUSTERS = int(numColor)
     NROUNDS = 4
     height, width, channels = image.shape
@@ -65,8 +66,10 @@ def processImage(srcImage,numColor,detailLevel):
     start = 0
     print(colors)
     #creating color rectangles
-    font = cv2.FONT_HERSHEY_SIMPLEX
-
+    font = cv2.FONT_HERSHEY_DUPLEX
+    # ft = cv2.freetype.createFreeType2()
+    # ft.loadFontData(fontFileName='Roboto-Black.ttf',id=0)
+    # font = ImageFont.truetype('./Roboto-Bold.ttf', size=8, encoding='unic')
     for i in range(NCLUSTERS):
         # end = start + int((i+1) * (500/NCLUSTERS))
         end = start + 50
@@ -109,8 +112,10 @@ def processImage(srcImage,numColor,detailLevel):
     i = 0
     maxContour = max(contours, key=cv2.contourArea)
     minContour = min(contours, key=cv2.contourArea)
+    # pilImg = Image.open(outline_image)
+    # pilDraw = ImageDraw.Draw(pilImg)
     for c in contours:
-        if(cv2.contourArea(c)>100):            
+        if(cv2.contourArea(c)>10):            
             x, y, w, h = cv2.boundingRect(c)
             # compute the center of the contour
             M = cv2.moments(c)
@@ -118,10 +123,14 @@ def processImage(srcImage,numColor,detailLevel):
             cY = int(M["m01"] / M["m00"])
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
-            fontSize = cv2.contourArea(c)/cv2.contourArea(maxContour)
-            cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[
-                        0][0]+1), (x+int(w/2), y+int(h/2)), font, fontSize, (0, 0, 255), 1, cv2.LINE_AA)
-            # cv2.putText(img, str(i)+' '+str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
+            # fontSize = cv2.contourArea(c)/cv2.contourArea(maxContour)
+            fontSize = 0.4
+            
+
+            # pilDraw.text((cX, cY), str(np.where(colors == image2[cY, cX])[0][0]+1), fill=color, font=font)
+            # cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[
+            #             0][0]+1), (x+int(w/2), y+int(h/2)), font, fontSize, (0, 0, 255), 1, cv2.LINE_AA)
+            cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
             print('Contour: '+str(i)+' Area: '+str(cv2.contourArea(c))+' ratio: '+str(cv2.contourArea(c)/cv2.contourArea(maxContour)))
     
     print('Total Area Outlined: ',i)
