@@ -65,7 +65,7 @@ def processImage(srcImage,numColor,detailLevel):
     start = 0
     print(colors)
     #creating color rectangles
-    font = cv2.FONT_HERSHEY_SIMPLEX
+    font = cv2.FONT_HERSHEY_DUPLEX
 
     for i in range(NCLUSTERS):
         # end = start + int((i+1) * (500/NCLUSTERS))
@@ -118,7 +118,7 @@ def processImage(srcImage,numColor,detailLevel):
             cY = int(M["m01"] / M["m00"])
             i = i+1
             # cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 1)
-            fontSize = cv2.contourArea(c)/cv2.contourArea(maxContour)
+            fontSize = .2
             cv2.putText(img, str(np.where(colors == image2[y+int(h/2), x+int(w/2)])[
                         0][0]+1), (x+int(w/2), y+int(h/2)), font, fontSize, (0, 0, 255), 1, cv2.LINE_AA)
             # cv2.putText(img, str(i)+' '+str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font, .5, (0, 0, 255), 1, cv2.LINE_AA)
