@@ -69,7 +69,7 @@ def processImage(srcImage,numColor,detailLevel):
     font = cv2.FONT_HERSHEY_DUPLEX
     # ft = cv2.freetype.createFreeType2()
     # ft.loadFontData(fontFileName='Roboto-Black.ttf',id=0)
-    pilFont = ImageFont.truetype('RobotoCondensed-Regular.ttf', size=8)
+    pilFont = ImageFont.truetype('RobotoCondensed-Regular.ttf', size=10)
     for i in range(NCLUSTERS):
         # end = start + int((i+1) * (500/NCLUSTERS))
         end = start + 50
@@ -113,7 +113,7 @@ def processImage(srcImage,numColor,detailLevel):
     pilImg = Image.open(outline_image)
     pilDraw = ImageDraw.Draw(pilImg)
     for c in contours:
-        if(cv2.contourArea(c)>10):            
+        if(cv2.contourArea(c)>200):            
             x, y, w, h = cv2.boundingRect(c)
             # compute the center of the contour
             M = cv2.moments(c)
