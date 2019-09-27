@@ -113,7 +113,7 @@ def processImage(srcImage,numColor,detailLevel):
     pilImg = Image.open(outline_image)
     pilDraw = ImageDraw.Draw(pilImg)
     for c in contours:
-        if(cv2.contourArea(c)>200):            
+        if(cv2.contourArea(c)>250):            
             x, y, w, h = cv2.boundingRect(c)
             # compute the center of the contour
             M = cv2.moments(c)
@@ -150,10 +150,10 @@ def processImage(srcImage,numColor,detailLevel):
 
 # construct the argument parse and parse the arguments
 
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True,help="path to the input image")
-# ap.add_argument("-c", "--colors", required=True, help="Number of colors")
-# ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
-# args = vars(ap.parse_args())
-# processImage(args["image"], args["colors"], args["detail"])
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--image", required=True,help="path to the input image")
+ap.add_argument("-c", "--colors", required=True, help="Number of colors")
+ap.add_argument("-d", "--detail", required=True, help="Level of detail (0-6)")
+args = vars(ap.parse_args())
+processImage(args["image"], args["colors"], args["detail"])
 
