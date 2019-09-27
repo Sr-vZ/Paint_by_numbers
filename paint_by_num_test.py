@@ -2,6 +2,7 @@ import cv2
 import argparse
 import numpy as np
 import img2pdf
+import copy
 # import imutils
 from PIL import Image, ImageDraw, ImageFont
 
@@ -17,6 +18,81 @@ def auto_canny(image, sigma=0.33):
 	# return the edged image
 	return edged
 
+
+def neighborsSame(image,x,y):
+    height, width, channels = image.shape
+    val = image[x][y]
+    xRel = [1, 0]
+    yRel = [0, 1]
+    for i in range(len(xRel)):
+        xx = x + xRel[i]
+        yy = y + yRel[i]
+        if (xx >= 0 and  xx < width and yy >= 0 and yy < height):
+            if (image[yy][xx] != val):
+                return false
+    return true
+
+def outline(image):
+    height, width, channels = image.shape
+    line = []
+    for i in range(width):
+        line[i] = [0]*width
+
+    for y in range(height):
+        for x in range(width):
+            line[y][x] = if neighborsSame(image, x, y) 0 else 1
+
+
+def getRegion(image, cov, x, y):
+    covered = copy.deepcopy(cov)
+    region = {value: image[y][x], x: [], y: []}
+    value = image[y][x]
+    queue = [[x, y]]
+    while len(queue) > 0:
+        coord = queue.shift()
+        if (covered[coord[1]][coord[0]] == false and mat[coord[1]][coord[0]] == value):
+            region.x.push(coord[0])
+            region.y.push(coord[1])
+            covered[coord[1]][coord[0]] = true
+            if (coord[0] > 0):
+                queue.push([coord[0] - 1, coord[1]])
+            if (coord[0] < mat[0].length - 1):
+                 queue.push([coord[0] + 1, coord[1]])
+            if (coord[1] > 0):
+                 queue.push([coord[0], coord[1] - 1])
+            if (coord[1] < mat.length - 1):
+                queue.push([coord[0], coord[1] + 1])
+    return region
+
+
+def coverRegion(covered, region):
+    for i in range(len(region.x)):
+        covered[region.y[i]][region.x[i]] = true
+
+
+def sameCount(image, x, y, incX, incY):
+    value = image[y][x]
+    count = -1
+    while (x >= 0 and x < image[0].length and y >= 0 and y < image.length and image[y][x] == value):
+        count = count+1
+	    x = x + incX
+	    y = y + incY
+    return count
+
+
+def getLabelLoc(image,region):
+    bestI = 0
+    best = 0
+    for i range(len(region.x)):
+        goodness = sameCount(image, region.x[i], region.y[i], -1, 0) *  sameCount(image, region.x[i], region.y[i], 1, 0) * sameCount(image, region.x[i], region.y[i], 0, -1) *   sameCount(image, region.x[i], region.y[i], 0, 1)
+    if goodness > best:
+        best = goodness
+        bestI = i
+    return {
+	value: region.value,
+	x: region.x[bestI],
+	y: region.y[bestI]
+    }
 
 
 
