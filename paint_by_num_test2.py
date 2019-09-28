@@ -137,9 +137,11 @@ def processImage(srcImage,numColor,detailLevel):
         cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
         cv2.putText(blank_image, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
     
-    cv2.imwrite(colored_output, img)
+    # cv2.imwrite(colored_output, img)
     outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
     outline_image = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+"_unnumbered.jpg"
+    cv2.imwrite(colored_output, img)
+    cv2.imwrite(outline_image_with_no, blank_image)
 
     """ f = open(outline_image, 'w+')
     f.write('<svg width="'+str(width)+'" height="'+str(height)+'" xmlns="http://www.w3.org/2000/svg">')
