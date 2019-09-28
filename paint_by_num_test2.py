@@ -19,134 +19,6 @@ def auto_canny(image, sigma=0.33):
 	return edged
 
 
-def neighborsSame(image,x,y):
-    height, width, channels = image.shape
-    val = image[x][y]
-    xRel = [1, 0]
-    yRel = [0, 1]
-    for i in range(len(xRel)):
-        xx = x + xRel[i]
-        yy = y + yRel[i]
-        if (xx >= 0 and  xx < width and yy >= 0 and yy < height):
-            if (image[yy][xx] != val):
-                return false
-    return true
-
-def outline(image):
-    height, width, channels = image.shape
-    line = []
-    for i in range(width):
-        line[i] = [0]*width
-
-    for y in range(height):
-        for x in range(width):
-            # line[y][x] = if neighborsSame(image, x, y) 0 else 1
-            line[y][x] = 0 if neighborsSame(image, x, y) else 1
-    return line
-
-
-def getRegion(image, cov, x, y):
-    height, width, channels = image.shape
-    # covered = copy.deepcopy(cov)
-    covered = cov
-    region = {'value': image[y][x], 'x': [], 'y': []}
-    value = image[y][x]
-    queue = [[x, y]]
-    while len(queue) > 0:
-        # coord = queue.shift()
-        coord = queue.pop()
-        # print(covered[coord[1]][coord[0]])
-        # print(image[coord[1]][coord[0]],value)
-        # print(np.array_equal(image[coord[1]][coord[0]], value))
-        # if (covered[coord[1]][coord[0]] == False and image[coord[1]][coord[0]] == value):
-        if (covered[coord[1]][coord[0]] == False and np.array_equal(image[coord[1]][coord[0]], value)):
-            region['x'].append(coord[0])
-            region['y'].append(coord[1])
-            covered[coord[1]][coord[0]] = True
-            if (coord[0] > 0):
-                queue.append([coord[0] - 1, coord[1]])
-            if (coord[0] < width - 1):
-                 queue.append([coord[0] + 1, coord[1]])
-            if (coord[1] > 0):
-                 queue.append([coord[0], coord[1] - 1])
-            if (coord[1] < height - 1):
-                queue.append([coord[0], coord[1] + 1])
-    return region
-
-
-def coverRegion(covered, region):
-    for i in range(len(region['x'])):
-        covered[region['y'][i]][region['x'][i]] = True
-
-
-def sameCount(image, x, y, incX, incY):
-    height, width, channels = image.shape
-    value = image[y][x]
-    count = -1
-    while (x >= 0 and x < width and y >= 0 and y < height and np.array_equal(image[y][x],value)):
-        count = count+1
-        x = x + incX
-        y = y + incY
-    return count
-
-
-def getLabelLoc(image,region):
-    bestI = 0
-    best = 0
-    for i in range(len(region['x'])):
-        goodness = sameCount(image, region['x'][i], region['y'][i], -1, 0) *  sameCount(image, region['x'][i], region['y'][i], 1, 0) * sameCount(image, region['x'][i], region['y'][i], 0, -1) *   sameCount(image, region['x'][i], region['y'][i], 0, 1)
-    if goodness > best:
-        best = goodness
-        bestI = i
-    return {
-	'value': region['value'],
-	'x': region['x'][bestI],
-	'y': region['y'][bestI]
-    }
-
-def getBelowValue(image,region):
-    x = region['x'][0]
-    y = region['y'][0]
-    # while image[y][x] == region['value']:
-    while np.array_equal(image[y][x],region['value']):
-        y = y+1
-    return image[y][x]
-
-def removeRegion(image,region):
-    if region['y'][0]>0:
-        newValue = image[region['y'][0]-1][region['x'][0]]
-    else:
-        newValue = getBelowValue(image,region)
-    for i in range(len(region['x'])):
-        image[region['y'][i]][region['x'][i]] = newValue
-
-def getLabelLocs(image):
-    height, width, channels = image.shape
-    covered = np.empty([height, width])
-    for i in range(height):
-        # covered[i] = [0]*width
-        # covered[i] = np.zeros(width)
-        covered[i].fill(False)
-    labelLocs = []
-    for y in range(height):
-        for x in range(width):
-            if covered[y][x] == False:
-                region = getRegion(image,covered,x,y)
-                coverRegion(covered,region)
-                if len(region['x']) > 100:
-                    labelLocs.append(getLabelLoc(image,region))
-                else:
-                    removeRegion(image, region)
-    return labelLocs
-
-
-
-
-
-
-
-
-
 
 output_path ='./static/processed_image/'
 
@@ -194,7 +66,7 @@ def processImage(srcImage,numColor,detailLevel):
     start = 0
     print(colors)
     #creating color rectangles
-    font = cv2.FONT_HERSHEY_DUPLEX
+    font = cv2.FONT_HERSHEY_SIMPLEX
     # ft = cv2.freetype.createFreeType2()
     # ft.loadFontData(fontFileName='Roboto-Black.ttf',id=0)
     pilFont = ImageFont.truetype('RobotoMono-Regular.ttf', size=10)
@@ -218,27 +90,95 @@ def processImage(srcImage,numColor,detailLevel):
     color_palette = output_path + "Color Palette.jpg"
     cv2.imwrite(color_palette, chart)
 
-    labelLocs = getLabelLocs(image)
-    imageLine = outline(image)
-
-    print(labelLocs)
-    print(imageLine)
-
     #find the edges in the image
     edged = cv2.Canny(image2, 30, 50)
     # edged = auto_canny(image2)
 
+    """ c = colors[1]
+    region = []
+    
+    mask = cv2.inRange(image2, c, c)
+    res = cv2.bitwise_and(image2, image2, mask=mask)
+    contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+    contourImg = image2.copy()
+    img = cv2.drawContours(contourImg, contours, -1, (0, 0, 1), 1)
+    cv2.imshow('img', image2)
+    cv2.imshow('mask', mask)
+    cv2.imshow('res', res)
+    cv2.imshow('contours', img)
+    cv2.waitKey(0) """
+
+    allContours = []
+    for c in colors:
+        mask = cv2.inRange(image2, c, c)
+        res = cv2.bitwise_and(image2, image2, mask=mask)
+        contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+        contourImg = image2.copy()
+        for cnts in contours:
+            if cv2.contourArea(cnts) > 250:
+                # M = cv2.moments(cnts)
+                # cX = int(M["m10"] / M["m00"])
+                # cY = int(M["m01"] / M["m00"])
+                # img = cv2.drawContours(contourImg, [cnts], 0, (0, 0, 0), 1)
+                # fontSize = 0.3
+                allContours.append(cnts)
+                # cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
+
+    contourImg = image2.copy()
+    blank_image = 255 * np.ones(shape=[width, height, 3], dtype=np.uint8)
+
+    for cnts in allContours:
+        M = cv2.moments(cnts)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        img = cv2.drawContours(contourImg, [cnts], 0, (0, 0, 0), 1)
+        blank_image = cv2.drawContours(blank_image, [cnts], 0, (0, 0, 0), 1)
+        fontSize = 0.3
+        cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
+        cv2.putText(blank_image, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
+    
+    cv2.imwrite(colored_output, img)
+    outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
+    outline_image = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+"_unnumbered.jpg"
+
+    """ f = open(outline_image, 'w+')
+    f.write('<svg width="'+str(width)+'" height="'+str(height)+'" xmlns="http://www.w3.org/2000/svg">')
+    for i in range(len(allContours)):
+        #print(c[i][0])
+        # x, y = contours[i][0][0]
+        if cv2.contourArea(allContours[i]) > 0:
+            M = cv2.moments(allContours[i])
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            f.write('<path d="M ')
+            for j in range(len(allContours[i])):
+                # x = contours[i][j][0]
+                x, y = allContours[i][j][0]
+                # print(x, y, len(contours[i][j]))
+                f.write(str(x) + ', ' + str(y)+' ')
+            f.write('" style="fill:nofill;stroke:gray;stroke-width:1"/>')
+            f.write('<text x="'+str(cX)+'" y="'+ str(cY)+'">'+str(np.where(colors == image2[cY, cX])[0][0]+1)+'</text>')
+
+    # f.write('"/>')
+    f.write('</svg>')
+    f.close() """
+
+    
+
+
+    # print('regions: ',region)
     # make them thicker
     # kernel = np.ones((2, 2), np.uint8)
     # edged = cv2.morphologyEx(edged, cv2.MORPH_DILATE, kernel)
     # contours,hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
-    contours,hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+    # contours,hierarchy = cv2.findContours(edged,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+    
     # cv2.imshow("Edges", imutils.resize(edged, height=600))
 
 
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
-    print("Total Conturs Found: ",len(contours))
+    """ print("Total Conturs Found: ",len(contours))
     edged = cv2.bitwise_not(edged)
     contourImg = edged.copy()
     # img = cv2.drawContours(contourImg, contours, -1, (0, 0, 0), 1)
@@ -283,8 +223,8 @@ def processImage(srcImage,numColor,detailLevel):
      
     outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
     cv2.imwrite(outline_image_with_no, img)
-    pilImg.save(outline_image_with_no, "JPEG")
-    pilImg2.save(colored_output, "JPEG")
+    pilImg.save(outline_image_with_no, "JPEG") """
+    # pilImg2.save(colored_output, "JPEG")
     # cv2.imshow("Contour Text", imutils.resize(img, height=600))
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
