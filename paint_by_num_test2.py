@@ -74,6 +74,100 @@ def deleteContours(contours):
     pass
 
 
+def buildColorDistanceMatrix(colorsByIndex):
+    colorDistances = []    
+    for j in range(len(colorsByIndex)):
+        for i in range(j,len(colorsByIndex)):
+            c1 = colorsByIndex[j]
+            c2 = colorsByIndex[i]
+            distance = math.sqrt((c1[0] - c2[0]) * (c1[0] - c2[0]) + (c1[1] - c2[1]) * (c1[1] - c2[1]) + (c1[2] - c2[2]) * (c1[2] - c2[2]))
+            colorDistances[i][j] = distance
+            colorDistances[j][i] = distance
+    return colorDistances
+
+
+def processNarrowPixelStripCleanup(colormapResult):
+    colorDistances = buildColorDistanceMatrix(colors)
+    count = 0
+    imgColorIndices = colormapResult.imgColorIndices
+    for j in range(len(colorsByIndex)):
+        for i in range(j, len(colorsByIndex)):
+            top = imgColorIndices.get(i, j - 1)
+            bottom = imgColorIndices.get(i, j + 1)
+            left = imgColorIndices.get(i - 1, j)
+            right = imgColorIndices.get(i + 1, j)
+            cur = imgColorIndices.get(i, j)
+            if (cur != top and cur != bottom and cur != left and cur != right):
+                pass
+                # single pixel
+                #
+            elif (cur != top and cur != bottom):
+                # check the color distance whether the top or bottom color is closer
+                topColorDistance = colorDistances[cur][top]
+                bottomColorDistance = colorDistances[cur][bottom]
+                # imgColorIndices.set(i, j, topColorDistance < bottomColorDistance ? top : bottom)
+                count = count+1
+            elif (cur != left and cur != right):
+                # check the color distance whether the top or bottom color is closer
+                leftColorDistance = colorDistances[cur][left]
+                rightColorDistance = colorDistances[cur][right]
+                # imgColorIndices.set(i, j, leftColorDistance < rightColorDistance ? left : right)
+                count = count+1
+
+""" static buildColorDistanceMatrix(colorsByIndex) {
+            const colorDistances = new Array(colorsByIndex.length);
+            for (let j = 0; j < colorsByIndex.length; j++) {
+                colorDistances[j] = new Array(colorDistances.length);
+            }
+            for (let j = 0; j < colorsByIndex.length; j++) {
+                for (let i = j; i < colorsByIndex.length; i++) {
+                    const c1 = colorsByIndex[j];
+                    const c2 = colorsByIndex[i];
+                    const distance = Math.sqrt((c1[0] - c2[0]) * (c1[0] - c2[0]) +
+                        (c1[1] - c2[1]) * (c1[1] - c2[1]) +
+                        (c1[2] - c2[2]) * (c1[2] - c2[2]));
+                    colorDistances[i][j] = distance;
+                    colorDistances[j][i] = distance;
+                }
+            }
+            return colorDistances;
+        }
+        static processNarrowPixelStripCleanup(colormapResult) {
+            return __awaiter(this, void 0, void 0, function* () {
+                // build the color distance matrix, which describes the distance of each color to each other
+                const colorDistances = ColorReducer.buildColorDistanceMatrix(colormapResult.colorsByIndex);
+                let count = 0;
+                const imgColorIndices = colormapResult.imgColorIndices;
+                for (let j = 1; j < colormapResult.height - 1; j++) {
+                    for (let i = 1; i < colormapResult.width - 1; i++) {
+                        const top = imgColorIndices.get(i, j - 1);
+                        const bottom = imgColorIndices.get(i, j + 1);
+                        const left = imgColorIndices.get(i - 1, j);
+                        const right = imgColorIndices.get(i + 1, j);
+                        const cur = imgColorIndices.get(i, j);
+                        if (cur !== top and cur !== bottom && cur !== left && cur !== right) {
+                            // single pixel
+                        }
+                        else if (cur !== top && cur !== bottom) {
+                            // check the color distance whether the top or bottom color is closer
+                            const topColorDistance = colorDistances[cur][top];
+                            const bottomColorDistance = colorDistances[cur][bottom];
+                            imgColorIndices.set(i, j, topColorDistance < bottomColorDistance ? top : bottom);
+                            count++;
+                        }
+                        else if (cur !== left && cur !== right) {
+                            // check the color distance whether the top or bottom color is closer
+                            const leftColorDistance = colorDistances[cur][left];
+                            const rightColorDistance = colorDistances[cur][right];
+                            imgColorIndices.set(i, j, leftColorDistance < rightColorDistance ? left : right);
+                            count++;
+                        }
+                    }
+                }
+                console.log(count + " pixels replaced to remove narrow pixel strips");
+            });
+        } """
+
 output_path ='./static/processed_image/'
 
 def processImage(srcImage,numColor,detailLevel):
@@ -163,24 +257,24 @@ def processImage(srcImage,numColor,detailLevel):
     cv2.imshow('contours', img)
     cv2.waitKey(0) """
 
-
-    
-    kernel = np.ones((2,2),np.uint8)
+    # image2 = cv2.medianBlur(image2, 5)
+    kernel = np.ones((2, 2), np.uint8)
     allContours = []
     allM = []
     # allMask = []
     mask = cv2.inRange(image2, colors[0], colors[0])
     for c in colors:
         mask = cv2.inRange(image2, c, c)
+        # mask = cv2.medianBlur(mask, 3)
         # mask = cv2.GaussianBlur(mask,(1,1),0)
         # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.erode(mask,kernel,iterations = 1)
+        # mask = cv2.erode(mask,kernel,iterations = 1)
         # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         #res = cv2.bitwise_and(image2, image2, mask=mask)
         # cv2.imshow("Edges", imutils.resize(mask, height=600))
         # cv2.waitKey(0)
         # contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
-        contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+        contours,hierarchy = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         contourImg = image2.copy()
         for cnts in contours:
             if cv2.contourArea(cnts) > 500:
@@ -212,7 +306,7 @@ def processImage(srcImage,numColor,detailLevel):
         img = cv2.drawContours(contourImg, [cnts], 0, (0, 0, 0), 1)
         blank_image = cv2.drawContours(blank_image, [cnts], 0, (0, 0, 0), 1)
         fontSize = 0.3
-        # print(cX,cY,cv2.contourArea(cnts))
+        print(cX,cY,cv2.contourArea(cnts))
         # cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
         # cv2.putText(blank_image, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
     
