@@ -2,8 +2,7 @@ import cv2
 import argparse
 import numpy as np
 import img2pdf
-import copy
-# import imutils
+import imutils
 from PIL import Image, ImageDraw, ImageFont
 
 def auto_canny(image, sigma=0.33):
@@ -18,6 +17,61 @@ def auto_canny(image, sigma=0.33):
 	# return the edged image
 	return edged
 
+def checkContourInside(contourList,contour):
+    x, y, w, h = cv2.boundingRect(contour)
+    for c in contourList:
+        cx, cy, cw, ch = cv2.boundingRect(c)
+        if cx > x and cy > y and cw > w and ch > h:
+            return True
+    return False
+
+def checkContourOverlaps(contourList,moment):
+    cX = int(moment["m10"] / moment["m00"])
+    cY = int(moment["m01"] / moment["m00"])
+    for c in contourList:
+        m = cv2.moments(c)
+        mcX = int(m["m10"] / m["m00"])
+        mcY = int(m["m01"] / m["m00"])
+        if mcX+25 > cX and cX > mcX-25 and mcY+25 > cY and cY > mcY-25:
+            print(str(cX)+','+str(cY)+','+str(mcX)+','+str(mcY),cv2.contourArea(c))
+            return True, cv2.contourArea(c)
+    print(str(cX)+','+str(cY)+','+str(mcX)+','+str(mcY),cv2.contourArea(c))
+    return False, cv2.contourArea(c)
+
+
+
+
+def inflateContours(contours,image):
+    height, width, channels = image.shape
+    print(height,width)
+    blank_image = 255 * np.ones(shape=[width, height, 3], dtype=np.uint8)
+    for c in contours:
+        for i in range(len(c)):
+            x, y = c[i][0]
+            for j in range(5):
+                if x+j < width and image[x+j][y][0] == 0 and image[x+j][y][1] == 0:
+                    # print(x+j)
+                    c[i][0] = x+j, y
+                elif y+j < height and image[x][y+j][0] == 0 and image[x][y+j][1] == 0:
+                    c[i][0] = x, y+j
+                # elif x+j < width and y+j < height and image[x+j][y+j][0] == 0 and image[x+j][y+j][1] == 0:
+                    # c[i][0] = x+j, y+j
+                elif x-j > 0 and image[x-j][y][0] == 0 and image[x-j][y][1] == 0:
+                    # print(x+j)
+                    c[i][0] = x-j, y
+                elif y-j > 0 and image[x][y-j][0] == 0 and image[x][y-j][1] == 0:
+                    c[i][0] = x, y-j
+                # elif x-j > 0 and y-j < height and image[x-j][y-j][0] == 0 and image[x-j][y-j][1] == 0:
+                    # c[i][0] = x-j, y-j
+                
+                # blank_image = cv2.drawContours(blank_image, [c], 0, (0, 0, 0), 1)
+                # cv2.imshow('image', blank_image)
+                # cv2.waitKey(1)
+    return contours
+            # print(x,y,image[x][y])
+
+def deleteContours(contours):
+    pass
 
 
 output_path ='./static/processed_image/'
@@ -44,6 +98,7 @@ def processImage(srcImage,numColor,detailLevel):
     centers = np.uint8(centers)
     res = centers[labels.flatten()]
     image2 = res.reshape((image.shape))
+    # image2 = cv2.dilate(image2,kernel,iterations = 1)
     colored_output = output_path + "Output_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
     cv2.imwrite(colored_output, image2)
     numLabels = np.arange(0, NCLUSTERS + 1)
@@ -91,7 +146,7 @@ def processImage(srcImage,numColor,detailLevel):
     cv2.imwrite(color_palette, chart)
 
     #find the edges in the image
-    edged = cv2.Canny(image2, 30, 50)
+    # edged = cv2.Canny(image2, 30, 50)
     # edged = auto_canny(image2)
 
     """ c = colors[1]
@@ -108,40 +163,101 @@ def processImage(srcImage,numColor,detailLevel):
     cv2.imshow('contours', img)
     cv2.waitKey(0) """
 
+
+    
+    kernel = np.ones((2,2),np.uint8)
     allContours = []
+    allM = []
+    # allMask = []
+    mask = cv2.inRange(image2, colors[0], colors[0])
     for c in colors:
         mask = cv2.inRange(image2, c, c)
-        res = cv2.bitwise_and(image2, image2, mask=mask)
-        contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+        # mask = cv2.GaussianBlur(mask,(1,1),0)
+        # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.erode(mask,kernel,iterations = 1)
+        # mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        #res = cv2.bitwise_and(image2, image2, mask=mask)
+        # cv2.imshow("Edges", imutils.resize(mask, height=600))
+        # cv2.waitKey(0)
+        # contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)[-2:]
+        contours,hierarchy = cv2.findContours(mask,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
         contourImg = image2.copy()
         for cnts in contours:
-            if cv2.contourArea(cnts) > 250:
-                # M = cv2.moments(cnts)
+            if cv2.contourArea(cnts) > 500:
+                M = cv2.moments(cnts)
                 # cX = int(M["m10"] / M["m00"])
                 # cY = int(M["m01"] / M["m00"])
                 # img = cv2.drawContours(contourImg, [cnts], 0, (0, 0, 0), 1)
                 # fontSize = 0.3
+                # allM.append(M)
                 allContours.append(cnts)
+                # print(cnts)
                 # cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
 
+    
+    # allContours = sorted(allContours, key=lambda x: cv2.contourArea(x), reverse=True)
+    
     contourImg = image2.copy()
     blank_image = 255 * np.ones(shape=[width, height, 3], dtype=np.uint8)
+    blank_image = cv2.drawContours(blank_image, allContours, -1, (0, 0, 0), 1)
+    # blank_image = cv2.dilate(blank_image,kernel,iterations = 1)
+    # allContours,hierarchy = cv2.findContours(blank_image,cv2.CV_RETR_FLOODFILL,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    
 
     for cnts in allContours:
         M = cv2.moments(cnts)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
+        # check,area = checkContourOverlaps(allContours,M)
         img = cv2.drawContours(contourImg, [cnts], 0, (0, 0, 0), 1)
         blank_image = cv2.drawContours(blank_image, [cnts], 0, (0, 0, 0), 1)
         fontSize = 0.3
-        cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(blank_image, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
+        # print(cX,cY,cv2.contourArea(cnts))
+        # cv2.putText(img, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (255, 255, 255), 1, cv2.LINE_AA)
+        # cv2.putText(blank_image, str(np.where(colors == image2[cY, cX])[0][0]+1), (cX, cY),font,fontSize, (0, 0, 0), 1, cv2.LINE_AA)
     
+    kernel = np.ones((2,2),np.uint8)
+    # allContours = inflateContours(allContours,blank_image)
+    blank_image2 = 255 * np.ones(shape=[width, height, 3], dtype=np.uint8)
+    blank_image2 = cv2.drawContours(blank_image, allContours, -1, (0, 0, 0), 1)
+    # blank_image2 = cv2.dilate(blank_image2,kernel,iterations = 1)
+    # blank_image2 = cv2.morphologyEx(blank_image2, cv2.MORPH_CLOSE, kernel)
+    cv2.imwrite('inflated_outline.jpg', blank_image2)
+
+    # blank_image = cv2.dilate(blank_image,kernel,iterations = 10)
+    # blank_image = cv2.erode(blank_image,kernel,iterations = 10)
+    # contours,hierarchy = cv2.findContours(blank_image,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)[-2:]
+    # blank_image = cv2.drawContours(blank_image, allContours, -1, (0, 0, 0), 1)
+    # img = cv2.erode(img,kernel,iterations = 10)
+    # blank_image = cv2.dilate(blank_image,kernel,iterations = 10)
+    
+    
+    # blank_image = cv2.morphologyEx(blank_image, cv2.MORPH_CLOSE, kernel)
+    # blank_image = cv2.morphologyEx(blank_image, cv2.MORPH_OPEN, kernel)
+    # cv2.imshow(img)
+    # cv2.waitKey(0)
+    # blank_image = cv2.erode(blank_image,kernel,iterations = 10)
     # cv2.imwrite(colored_output, img)
     outline_image_with_no = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+".jpg"
     outline_image = output_path + "Outline_col_"+str(numColor)+"_det_"+str(detailLevel)+"_unnumbered.jpg"
     cv2.imwrite(colored_output, img)
+    cv2.imwrite(outline_image, blank_image)
     cv2.imwrite(outline_image_with_no, blank_image)
+
+    pilImg = Image.open(outline_image)
+    pilImg2 = Image.open(colored_output)
+    pilDraw = ImageDraw.Draw(pilImg)
+    pilDraw2 = ImageDraw.Draw(pilImg2)
+
+    for cnts in allContours:
+        M = cv2.moments(cnts)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        pilDraw.text((cX, cY), str(np.where(colors == image2[cY, cX])[0][0]+1), font=pilFont,fill=(0,0,0,255))
+        pilDraw2.text((cX, cY), str(cX)+','+str(cY)+','+str(cv2.contourArea(cnts)), font=pilFont,fill=(0,0,0,255))
+
+    pilImg.save(outline_image_with_no, "JPEG")
+    pilImg2.save(colored_output, "JPEG")
 
     """ f = open(outline_image, 'w+')
     f.write('<svg width="'+str(width)+'" height="'+str(height)+'" xmlns="http://www.w3.org/2000/svg">')
