@@ -91,7 +91,7 @@ python-dateutil==2.7.5
 python-rtmidi==1.1.2
 pytz==2018.7
 PyWavelets==1.0.3
-pywin32==223
+pywin32==301
 PyYAML==5.1.1
 pyzbar==0.1.8
 qrcode==6.1
