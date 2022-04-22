@@ -82,7 +82,7 @@ pylint==2.1.1
 pyodbc==4.0.26
 pyOpenSSL==18.0.0
 pyparsing==2.3.1
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 pypiwin32==223
 pyppeteer==0.0.25
 pyquery==1.4.0
