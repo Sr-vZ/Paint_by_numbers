@@ -58,7 +58,7 @@ moment==0.8.2
 nbformat==4.4.0
 networkx==2.3
 ntlm-auth==1.2.0
-numpy==1.15.4
+numpy==1.22.0
 olefile==0.46
 omr==0.0.73
 opencv-python==4.1.0.25
